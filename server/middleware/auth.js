@@ -18,3 +18,10 @@ exports.isMentor = (req, res, next) => {
   }
   next();
 };
+
+exports.isMentee = (req, res, next) => {
+  if (req.user.role !== 'mentee') {
+    return res.status(403).json({ message: 'Access denied: mentees only' });
+  }
+  next();
+};
