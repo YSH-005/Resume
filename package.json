@@ -1,0 +1,16 @@
+{
+  "name": "y",
+  "version": "1.0.0",
+  "main": "index.js",
+  
+  "scripts": {
+    "client": "npm run dev --prefix client",
+    "server": "nodemon server/index.js", 
+    "dev": "concurrently \"npm run server\" \"npm run client\""
+  }
+
+,
+  "author": "",
+  "license": "ISC",
+  "description": ""
+}
