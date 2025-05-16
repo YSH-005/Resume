@@ -5,6 +5,7 @@ const connectDB = require('./config/db');
 const http = require('http');
 const { Server } = require('socket.io');
 const postRoutes = require('./routes/postRoutes');
+const userRoutes = require('./routes/userRoutes');
 
 dotenv.config();
 const app = express();
@@ -23,6 +24,9 @@ app.use('/api/payments', require('./routes/paymentRoutes'));
 app.use('/api/resume', require('./routes/resumeRoutes'));
 app.use('/api/chat', require('./routes/chatRoutes'));
 app.use('/api/posts', postRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/admin', require('./routes/adminRoutes'));
+
 
 
 // Create HTTP server & bind Socket.IO
