@@ -10,6 +10,8 @@ const mentorSchema = new mongoose.Schema({
   experience: { type: Number }, // in years
   price: { type: Number, required: true }, // per session
   linkedin: { type: String },
+  availableDates: [{ type: Date }],  // array of dates mentor is available for booking
+
   posts: [
     {
       title: String,

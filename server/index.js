@@ -6,6 +6,10 @@ const http = require('http');
 const { Server } = require('socket.io');
 const postRoutes = require('./routes/postRoutes');
 const userRoutes = require('./routes/userRoutes');
+const bookingRoutes = require('./routes/booking');
+const cron = require('node-cron');
+const { deactivateExpiredBookings } = require('./utils/scheduler');
+
 
 dotenv.config();
 const app = express();
@@ -26,7 +30,7 @@ app.use('/api/chat', require('./routes/chatRoutes'));
 app.use('/api/posts', postRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/admin', require('./routes/adminRoutes'));
-
+app.use('/api/bookings', bookingRoutes);
 
 
 // Create HTTP server & bind Socket.IO
@@ -56,7 +60,12 @@ io.on('connection', (socket) => {
     console.log('Client disconnected:', socket.id);
   });
 });
+// cron.schedule('0 0 * * *', () => {
+//   console.log('Running daily booking deactivation job...');
+//   deactivateExpiredBookings();
+// });
 
 // Start server
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
