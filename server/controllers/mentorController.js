@@ -2,36 +2,54 @@ const Mentor = require('../models/Mentor');
 
 // @desc Create or Update Mentor Profile
 exports.upsertMentorProfile = async (req, res) => {
-  const { name, title, bio, categories, credentials, experience, price, linkedin } = req.body;
-
   try {
-    let mentor = await Mentor.findOne({ user: req.user._id });
+    const { name, title, bio, categories, credentials, experience, price, linkedin, availableDates } = req.body;
+    
+    // Get user ID from the authenticated user (middleware sets req.user)
+    const userId = req.user._id;
 
-    if (mentor) {
-      // Update
-      mentor = await Mentor.findOneAndUpdate(
-        { user: req.user._id },
-        { name, title, bio, categories, credentials, experience, price, linkedin },
-        { new: true }
-      );
-    } else {
-      // Create
-      mentor = await Mentor.create({
-        user: req.user._id,
-        name,
-        title,
-        bio,
-        categories,
-        credentials,
-        experience,
-        price,
-        linkedin
-      });
-    }
+    // Prepare mentor data
+    const mentorData = {
+      name,
+      title,
+      bio,
+      categories: Array.isArray(categories) ? categories : [],
+      credentials: Array.isArray(credentials) ? credentials : [],
+      experience: Number(experience) || 0,
+      price: Number(price) || 0,
+      linkedin,
+      availableDates: Array.isArray(availableDates) ? availableDates : []
+    };
 
-    res.status(200).json(mentor);
+    // Use findOneAndUpdate with upsert to create or update
+    const mentor = await Mentor.findOneAndUpdate(
+      { user: userId }, // Find by user reference
+      { 
+        $set: {
+          ...mentorData,
+          user: userId // Ensure user reference is set
+        }
+      },
+      { 
+        new: true, // Return updated document
+        upsert: true, // Create if doesn't exist
+        setDefaultsOnInsert: true // Apply schema defaults on creation
+      }
+    ).populate('user', 'name email role');
+
+    res.status(200).json({
+      success: true,
+      data: mentor,
+      message: mentor.isNew ? 'Mentor profile created successfully' : 'Mentor profile updated successfully'
+    });
+
   } catch (error) {
-    res.status(500).json({ error: 'Server error' });
+    console.error('Error in upsertMentorProfile:', error);
+    res.status(500).json({ 
+      success: false,
+      error: 'Server error while saving mentor profile',
+      details: error.message 
+    });
   }
 };
 
@@ -60,20 +78,42 @@ exports.getAllMentors = async (req, res) => {
       if (maxPrice) query.price.$lte = Number(maxPrice);
     }
 
-    const mentors = await Mentor.find(query).populate('user', 'email role');
-    res.status(200).json(mentors);
+    const mentors = await Mentor.find(query).populate('user', 'name email role');
+    res.status(200).json({
+      success: true,
+      count: mentors.length,
+      data: mentors
+    });
   } catch (error) {
-    res.status(500).json({ error: 'Server error' });
+    console.error('Error in getAllMentors:', error);
+    res.status(500).json({ 
+      success: false,
+      error: 'Server error while fetching mentors' 
+    });
   }
 };
 
-// @desc Get a single mentor by ID
+// @desc Get a single mentor by user ID
 exports.getMentorById = async (req, res) => {
   try {
-    const mentor = await Mentor.findById(req.params.id).populate('user', 'email role');
-    if (!mentor) return res.status(404).json({ error: 'Mentor not found' });
-    res.status(200).json(mentor);
+    const mentor = await Mentor.findOne({ user: req.params.id }).populate('user', 'name email role');
+    
+    if (!mentor) {
+      return res.status(404).json({ 
+        success: false,
+        error: 'Mentor not found' 
+      });
+    }
+    
+    res.status(200).json({
+      success: true,
+      data: mentor
+    });
   } catch (error) {
-    res.status(500).json({ error: 'Server error' });
+    console.error('Error in getMentorById:', error);
+    res.status(500).json({ 
+      success: false,
+      error: 'Server error while fetching mentor' 
+    });
   }
 };
