@@ -12,6 +12,7 @@ import BookingDashboard from '../pages/BookingDashboard';
 import Feed from '../components/feed/Feed';
 import MenteeProfile from '../pages/MenteeProfile';
 import { useAuth } from '../context/AuthContext';
+import Post from '../pages/Post';
 
 const AppRoutes = () => {
   const { user } = useAuth();
@@ -73,9 +74,7 @@ const AppRoutes = () => {
       <Route 
         path="/feed" 
         element={
-          <ProtectedRoute>
-            <Feed />
-          </ProtectedRoute>
+          <Post />
         } 
       />
     </Routes>
